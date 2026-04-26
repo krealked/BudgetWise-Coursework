@@ -19,15 +19,18 @@ public class ExpenseViewModel: ObservableObject {
     // MARK: - Statistics
     @Published var totalSpending: Double = 0.0
     @Published var averageMonthlySpending: Double = 0.0
+    @Published var limits: [TransactionCategory: Double] = [:]
     
     // MARK: - Core Data
     private let coreDataStack = CoreDataStack.shared
+    private let limitsStorageKey = "budgetwise.category.limits"
     private var viewContext: NSManagedObjectContext {
         coreDataStack.viewContext
     }
     
     // MARK: - Initialization
     public init() {
+        loadLimits()
         loadTransactions()
         updatePredictions()
         updateStatistics()
@@ -180,5 +183,37 @@ public class ExpenseViewModel: ObservableObject {
     /// Обновляет все данные
     public func refresh() {
         loadTransactions()
+    }
+
+    // MARK: - Category Limits
+    public func loadLimits() {
+        guard let stored = UserDefaults.standard.dictionary(forKey: limitsStorageKey) as? [String: Double] else {
+            limits = [:]
+            return
+        }
+
+        var mapped: [TransactionCategory: Double] = [:]
+        for (rawCategory, value) in stored {
+            guard let category = TransactionCategory(rawValue: rawCategory), value >= 0 else { continue }
+            mapped[category] = value
+        }
+        limits = mapped
+    }
+
+    public func saveLimits() {
+        let encoded: [String: Double] = limits.reduce(into: [:]) { partialResult, item in
+            partialResult[item.key.rawValue] = max(0, item.value)
+        }
+        UserDefaults.standard.set(encoded, forKey: limitsStorageKey)
+    }
+
+    public func setLimit(_ value: Double, for category: TransactionCategory) {
+        let sanitized = max(0, value)
+        limits[category] = sanitized
+        saveLimits()
+    }
+
+    public func limit(for category: TransactionCategory) -> Double {
+        limits[category] ?? 0
     }
 }
