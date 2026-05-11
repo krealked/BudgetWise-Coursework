@@ -4,6 +4,7 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject var viewModel: ExpenseViewModel
     @State private var inputByCategory: [TransactionCategory: String] = [:]
+    @State private var showExportView = false
 
     var body: some View {
         List {
@@ -25,10 +26,23 @@ struct SettingsView: View {
             } header: {
                 Text("Итого")
             }
+
+            Section {
+                Button {
+                    showExportView = true
+                } label: {
+                    Label("Экспорт транзакций в Excel", systemImage: "arrow.up.doc")
+                }
+            } header: {
+                Text("Экспорт")
+            }
         }
         .navigationTitle("Настройки")
         .onAppear {
             syncInputWithLimits()
+        }
+        .sheet(isPresented: $showExportView) {
+            ExportView(viewModel: viewModel)
         }
     }
 

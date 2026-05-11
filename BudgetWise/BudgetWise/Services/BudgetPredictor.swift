@@ -33,6 +33,11 @@ public class BudgetPredictor {
     /// Группирует транзакции по неделям и вычисляет линейную регрессию
     /// - Parameter transactions: Массив транзакций
     /// - Returns: Прогнозируемая сумма трат на следующий месяц
+    /// Алиас для линейного прогноза на следующий месяц (то же, что `linearRegressionNextMonth`).
+    public static func linearRegressionPrediction(_ transactions: [Transaction]) -> Double {
+        linearRegressionNextMonth(transactions)
+    }
+
     public static func linearRegressionNextMonth(_ transactions: [Transaction]) -> Double {
         guard !transactions.isEmpty else { return 0.0 }
         

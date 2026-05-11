@@ -216,4 +216,103 @@ public class ExpenseViewModel: ObservableObject {
     public func limit(for category: TransactionCategory) -> Double {
         limits[category] ?? 0
     }
+
+    /// Лимиты по категориям на месяц (то же хранилище, что и `limits`).
+    public var monthlyLimits: [TransactionCategory: Double] {
+        limits
+    }
+
+    // MARK: - Month filtering
+
+    /// Транзакции за календарный месяц и год указанной даты.
+    public func transactions(for month: Date) -> [Transaction] {
+        let calendar = Calendar.current
+        guard let interval = calendar.dateInterval(of: .month, for: month) else { return [] }
+        return transactions.filter { interval.contains($0.date) }
+    }
+
+    /// Первый день каждого месяца, в котором есть транзакции (по возрастанию).
+    public var monthsWithTransactions: [Date] {
+        let calendar = Calendar.current
+        let monthStarts = Set(
+            transactions.compactMap { transaction in
+                calendar.date(from: calendar.dateComponents([.year, .month], from: transaction.date))
+            }
+        )
+        return monthStarts.sorted()
+    }
+
+    // MARK: - Grouping by category
+
+    public func groupedByCategory(for transactions: [Transaction]) -> [TransactionCategory: Double] {
+        var totals: [TransactionCategory: Double] = [:]
+        for transaction in transactions {
+            totals[transaction.category, default: 0.0] += transaction.amount
+        }
+        return totals
+    }
+
+    public var categoryTotalsForCurrentMonth: [TransactionCategory: Double] {
+        groupedByCategory(for: transactionsForCurrentMonth())
+    }
+
+    // MARK: - Forecast (BudgetPredictor)
+
+    private func transactionsForLinearRegression(lastMonths: Int = 3, category: TransactionCategory?) -> [Transaction] {
+        let calendar = Calendar.current
+        let anchor = Date()
+        guard let windowStart = calendar.date(byAdding: .month, value: -lastMonths, to: anchor) else {
+            return []
+        }
+        var slice = transactions.filter { $0.date >= windowStart }
+        if let category = category {
+            slice = slice.filter { $0.category == category }
+        }
+        return slice
+    }
+
+    /// Прогноз трат на ближайшие `months` месяцев по линейной регрессии на данных за последние 3 месяца (или все, если меньше).
+    public func predictedExpense(for category: TransactionCategory? = nil, months: Int = 1) -> Double {
+        let history = transactionsForLinearRegression(lastMonths: 3, category: category)
+        guard !history.isEmpty else { return 0.0 }
+        let oneMonth = BudgetPredictor.linearRegressionPrediction(history)
+        let horizon = max(1, months)
+        return max(0.0, oneMonth * Double(horizon))
+    }
+
+    public func predictedExpenseForNextMonth() -> Double {
+        predictedExpense(for: nil, months: 1)
+    }
+
+    // MARK: - Totals & balance
+
+    /// Без поля `type` в `Transaction`: общая сумма по полю `amount` (как накопленные траты в приложении).
+    public var totalExpense: Double {
+        transactions.reduce(0.0) { $0 + $1.amount }
+    }
+
+    /// Без поля типа доход не различается — по заданию возвращаем 0.
+    public var totalIncome: Double {
+        0.0
+    }
+
+    public var balance: Double {
+        totalIncome - totalExpense
+    }
+
+    // MARK: - Budget checks
+
+    public func isBudgetExceeded(for category: TransactionCategory, limit: Double) -> Bool {
+        guard limit > 0 else { return false }
+        let spent = groupedByCategory(for: transactionsForCurrentMonth())[category, default: 0.0]
+        return spent > limit
+    }
+
+    public func exceededCategories() -> [TransactionCategory] {
+        monthlyLimits.compactMap { category, limit -> TransactionCategory? in
+            guard limit > 0, isBudgetExceeded(for: category, limit: limit) else { return nil }
+            return category
+        }
+        .sorted { $0.rawValue < $1.rawValue }
+    }
 }
