@@ -11,9 +11,11 @@ struct SettingsView: View {
             Section {
                 ForEach(TransactionCategory.allCases) { category in
                     limitRow(for: category)
+                        .listRowBackground(Color.listCellOnMidnight)
                 }
             } header: {
                 Text("Лимиты по категориям")
+                    .foregroundStyle(Color.themeHeadingOnDark)
             }
 
             Section {
@@ -22,9 +24,12 @@ struct SettingsView: View {
                     Spacer()
                     Text(totalBudget, format: .currency(code: "RUB"))
                         .fontWeight(.semibold)
+                        .foregroundStyle(Color.themeAccent)
                 }
+                .listRowBackground(Color.listCellOnMidnight)
             } header: {
                 Text("Итого")
+                    .foregroundStyle(Color.themeHeadingOnDark)
             }
 
             Section {
@@ -33,11 +38,16 @@ struct SettingsView: View {
                 } label: {
                     Label("Экспорт транзакций в Excel", systemImage: "arrow.up.doc")
                 }
+                .tint(Color.themeAccent)
+                .listRowBackground(Color.listCellOnMidnight)
             } header: {
                 Text("Экспорт")
+                    .foregroundStyle(Color.themeHeadingOnDark)
             }
         }
+        .listStyle(.insetGrouped)
         .navigationTitle("Настройки")
+        .budgetWiseListChrome()
         .onAppear {
             syncInputWithLimits()
         }
@@ -48,7 +58,13 @@ struct SettingsView: View {
 
     private func limitRow(for category: TransactionCategory) -> some View {
         HStack(spacing: 10) {
+            Image(systemName: category.iconName)
+                .font(.system(size: 24))
+                .foregroundStyle(Color.themeAccent)
+                .frame(width: 28, alignment: .center)
+
             Text(category.rawValue)
+                .foregroundStyle(Color.themeHeadingOnDark)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             TextField("0", text: binding(for: category))

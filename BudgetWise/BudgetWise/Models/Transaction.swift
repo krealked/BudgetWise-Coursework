@@ -14,18 +14,19 @@ public enum TransactionCategory: String, CaseIterable, Identifiable {
     case other = "Другое"
     
     public var id: String { rawValue }
-    
-    public var icon: String {
+
+    /// SF Symbol для UI (иконка категории).
+    public var iconName: String {
         switch self {
-        case .food: return "cart.fill"
+        case .food: return "fork.knife"
         case .transport: return "car.fill"
-        case .entertainment: return "tv.fill"
+        case .entertainment: return "film.fill"
         case .shopping: return "bag.fill"
-        case .bills: return "doc.text.fill"
+        case .bills: return "house.fill"
         case .health: return "heart.fill"
         case .education: return "book.fill"
         case .cafe: return "cup.and.saucer.fill"
-        case .other: return "ellipsis.circle.fill"
+        case .other: return "questionmark.circle.fill"
         }
     }
 }

@@ -5,18 +5,19 @@ struct TransactionRowView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: transaction.category.icon)
-                .font(.title3)
-                .foregroundColor(.accentColor)
-                .frame(width: 28)
+            Image(systemName: transaction.category.iconName)
+                .font(.system(size: 24))
+                .foregroundStyle(Color.themeAccent)
+                .frame(width: 28, alignment: .center)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(displayTitle)
                     .font(.headline)
                     .lineLimit(1)
+                    .foregroundStyle(Color.themeHeadingOnDark)
                 Text(Self.dateFormatter.string(from: transaction.date))
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(Color.themeCaptionOnDark)
             }
 
             Spacer()
@@ -26,7 +27,7 @@ struct TransactionRowView: View {
                 format: .currency(code: "RUB")
             )
             .fontWeight(.semibold)
-            .foregroundColor(.primary)
+            .foregroundStyle(Color.themeAccent)
         }
         .padding(.vertical, 4)
     }

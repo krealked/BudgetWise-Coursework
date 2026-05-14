@@ -8,25 +8,30 @@ struct MainContentView: View {
             NavigationStack {
                 MainView(viewModel: viewModel)
             }
-                .tabItem {
-                    Label("Главная", systemImage: "list.bullet")
-                }
+            .budgetWiseNavigationBar()
+            .tabItem {
+                Label("Главная", systemImage: "list.bullet")
+            }
 
             NavigationStack {
                 StatisticsView(viewModel: viewModel)
                     .navigationTitle("Статистика")
             }
-                .tabItem {
-                    Label("Статистика", systemImage: "chart.pie")
-                }
+            .budgetWiseNavigationBar()
+            .tabItem {
+                Label("Статистика", systemImage: "chart.pie")
+            }
 
             NavigationStack {
                 SettingsView(viewModel: viewModel)
             }
-                .tabItem {
-                    Label("Настройки", systemImage: "gear")
-                }
+            .budgetWiseNavigationBar()
+            .tabItem {
+                Label("Настройки", systemImage: "gear")
+            }
         }
+        .background(Color.midnightSky)
+        .budgetWiseTabBar()
         .toolbar(.visible, for: .tabBar)
     }
 }
@@ -34,5 +39,6 @@ struct MainContentView: View {
 struct MainContentView_Previews: PreviewProvider {
     static var previews: some View {
         MainContentView()
+            .budgetWiseRootAppearance()
     }
 }

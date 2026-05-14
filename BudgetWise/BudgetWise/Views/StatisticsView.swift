@@ -10,6 +10,7 @@ struct StatisticsView: View {
             VStack(alignment: .leading, spacing: 20) {
                 Text("Статистика")
                     .font(.largeTitle.bold())
+                    .foregroundStyle(Color.themeHeadingOnDark)
                     .padding(.horizontal)
 
                 Picker("Период", selection: $selectedPeriod) {
@@ -18,6 +19,7 @@ struct StatisticsView: View {
                     }
                 }
                 .pickerStyle(.segmented)
+                .tint(Color.themeAccent)
                 .padding(.horizontal)
 
                 if categoryTotalsForSelectedPeriod.isEmpty && lastSixMonthsTotals.isEmpty {
@@ -29,16 +31,18 @@ struct StatisticsView: View {
             }
             .padding(.vertical)
         }
+        .background(Color.midnightSky)
     }
 
     private var pieChartSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Распределение по категориям")
                 .font(.headline)
+                .foregroundStyle(Color.themeHeadingOnDark)
 
             if categoryTotalsForSelectedPeriod.isEmpty {
                 Text("Нет данных за выбранный период")
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(Color.themeCaptionOnDark)
                     .frame(maxWidth: .infinity, minHeight: 220, alignment: .center)
             } else {
                 Chart(categoryTotalsForSelectedPeriod) { item in
@@ -50,22 +54,50 @@ struct StatisticsView: View {
                     .foregroundStyle(by: .value("Категория", item.category.rawValue))
                 }
                 .frame(height: 260)
-                .chartLegend(position: .bottom, alignment: .leading)
+                .chartLegend(.hidden)
+
+                categoryBreakdownList(items: categoryTotalsForSelectedPeriod)
             }
         }
         .padding()
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(Color.themeAccent.opacity(0.22), lineWidth: 1)
+        )
         .padding(.horizontal)
+    }
+
+    @ViewBuilder
+    private func categoryBreakdownList(items: [CategoryTotal]) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            ForEach(items) { item in
+                HStack(spacing: 12) {
+                    Image(systemName: item.category.iconName)
+                        .font(.system(size: 24))
+                        .foregroundStyle(Color.themeAccent)
+                        .frame(width: 28, alignment: .center)
+                    Text(item.category.rawValue)
+                        .foregroundStyle(Color.themeHeadingOnDark)
+                    Spacer()
+                    Text(item.total, format: .currency(code: "RUB"))
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Color.themeAccent)
+                }
+            }
+        }
+        .padding(.top, 8)
     }
 
     private var lineChartSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Динамика за последние 6 месяцев")
                 .font(.headline)
+                .foregroundStyle(Color.themeHeadingOnDark)
 
             if lastSixMonthsTotals.isEmpty {
                 Text("Недостаточно данных для графика")
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(Color.themeCaptionOnDark)
                     .frame(maxWidth: .infinity, minHeight: 220, alignment: .center)
             } else {
                 Chart(lastSixMonthsTotals) { item in
@@ -74,13 +106,13 @@ struct StatisticsView: View {
                         y: .value("Сумма", item.total)
                     )
                     .interpolationMethod(.catmullRom)
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(Color.themeAccent)
 
                     PointMark(
                         x: .value("Месяц", item.month, unit: .month),
                         y: .value("Сумма", item.total)
                     )
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(Color.themeAccent)
                 }
                 .frame(height: 260)
                 .chartXAxis {
@@ -97,6 +129,10 @@ struct StatisticsView: View {
         }
         .padding()
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(Color.themeAccent.opacity(0.22), lineWidth: 1)
+        )
         .padding(.horizontal)
     }
 
@@ -104,9 +140,9 @@ struct StatisticsView: View {
         VStack(spacing: 8) {
             Image(systemName: "chart.pie")
                 .font(.system(size: 32))
-                .foregroundColor(.secondary)
+                .foregroundStyle(Color.themeAccent.opacity(0.85))
             Text("Пока нет данных для статистики")
-                .foregroundColor(.secondary)
+                .foregroundStyle(Color.themeCaptionOnDark)
         }
         .frame(maxWidth: .infinity, minHeight: 260)
         .padding(.horizontal)

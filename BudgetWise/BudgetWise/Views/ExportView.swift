@@ -39,8 +39,11 @@ struct ExportView: View {
                         Label("Сформировать CSV", systemImage: "square.and.arrow.up")
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
+                    .tint(Color.themeAccent)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.midnightSky)
             .navigationTitle("Экспорт транзакций")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -59,6 +62,7 @@ struct ExportView: View {
                 }
             }
         }
+        .budgetWiseNavigationBar()
     }
 
     // MARK: - Private

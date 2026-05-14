@@ -12,10 +12,15 @@ import CoreData
 struct BudgetWiseApp: App {
     let persistenceController = PersistenceController.shared
 
+    init() {
+        BudgetWiseAppearance.configure()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                .budgetWiseRootAppearance()
         }
     }
 }

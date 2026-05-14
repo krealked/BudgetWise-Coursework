@@ -22,21 +22,31 @@ struct AddTransactionView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section("Транзакция") {
+                Section {
                     TextField("Сумма", text: $amountText)
                         .keyboardType(.decimalPad)
 
                     Picker("Категория", selection: $selectedCategory) {
                         ForEach(TransactionCategory.allCases) { category in
-                            Text(category.rawValue).tag(category)
+                            Label {
+                                Text(category.rawValue)
+                            } icon: {
+                                Image(systemName: category.iconName)
+                            }
+                            .tag(category)
                         }
                     }
 
                     DatePicker("Дата", selection: $selectedDate, displayedComponents: .date)
 
                     TextField("Заметка", text: $note)
+                } header: {
+                    Text("Транзакция")
+                        .foregroundStyle(Color.themeHeadingOnDark)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.midnightSky)
             .navigationTitle("Добавить транзакцию")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -53,6 +63,7 @@ struct AddTransactionView: View {
                 }
             }
         }
+        .budgetWiseNavigationBar()
     }
 
     private func saveTransaction() {

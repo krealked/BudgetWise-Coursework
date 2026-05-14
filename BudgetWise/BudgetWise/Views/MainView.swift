@@ -12,6 +12,8 @@ struct MainView: View {
             contentSection
         }
         .padding(.top, 8)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.midnightSky)
         .navigationTitle("Бюджет")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -35,33 +37,40 @@ struct MainView: View {
         VStack(spacing: 6) {
             Text("Общая сумма")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(Color.themeCaptionOnDark)
 
             Text("\(viewModel.totalBalance, specifier: "%.2f") руб.")
                 .font(.system(size: 34, weight: .bold, design: .rounded))
+                .foregroundStyle(Color.themeAccent)
         }
         .padding(.horizontal)
     }
 
     private var predictionSection: some View {
-        Text("Прогноз на след. месяц: \(viewModel.predictedExpense(), specifier: "%.2f") руб.")
-            .font(.headline)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal)
+        HStack(spacing: 0) {
+            Text("Прогноз на след. месяц: ")
+                .foregroundStyle(Color.themeHeadingOnDark)
+            Text("\(viewModel.predictedExpense(), specifier: "%.2f") руб.")
+                .foregroundStyle(Color.themeAccent)
+        }
+        .font(.headline)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal)
     }
-
+    
     @ViewBuilder
     private var contentSection: some View {
         if viewModel.transactions.isEmpty {
             VStack(spacing: 12) {
                 Text("Нет трат")
                     .font(.title3)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(Color.themeCaptionOnDark)
 
                 Button("Добавить первую") {
                     isShowingAddTransaction = true
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(Color.themeAccent)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
@@ -73,6 +82,7 @@ struct MainView: View {
                         TransactionRowView(transaction: transaction)
                     }
                     .buttonStyle(.plain)
+                    .listRowBackground(Color.listCellOnMidnight)
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) {
                             viewModel.deleteTransaction(transaction)
@@ -84,6 +94,7 @@ struct MainView: View {
                 .onDelete(perform: viewModel.deleteTransactions)
             }
             .listStyle(.plain)
+            .budgetWiseListChrome()
         }
     }
 }
@@ -120,36 +131,50 @@ private struct TransactionDetailsView: View {
                 Section {
                     HStack {
                         Text("Сумма")
+                            .foregroundStyle(Color.themeHeadingOnDark)
                         Spacer()
                         Text(transaction.amount, format: .currency(code: "RUB"))
+                            .foregroundStyle(Color.themeAccent)
+                            .fontWeight(.semibold)
                     }
 
                     HStack {
                         Text("Дата")
+                            .foregroundStyle(Color.themeHeadingOnDark)
                         Spacer()
                         Text(Self.detailsDateFormatter.string(from: transaction.date))
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(Color.themeCaptionOnDark)
                     }
                 } header: {
                     Text("Информация")
+                        .foregroundStyle(Color.themeHeadingOnDark)
                 }
 
                 Section {
                     Text(transaction.note.isEmpty ? "Без заметки" : transaction.note)
                 } header: {
                     Text("Заметка")
+                        .foregroundStyle(Color.themeHeadingOnDark)
                 }
 
                 Section {
                     Picker("Категория", selection: $selectedCategory) {
                         ForEach(TransactionCategory.allCases) { category in
-                            Text(category.rawValue).tag(category)
+                            Label {
+                                Text(category.rawValue)
+                            } icon: {
+                                Image(systemName: category.iconName)
+                            }
+                            .tag(category)
                         }
                     }
                 } header: {
                     Text("Изменить категорию")
+                        .foregroundStyle(Color.themeHeadingOnDark)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.midnightSky)
             .navigationTitle("Покупка")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -163,6 +188,7 @@ private struct TransactionDetailsView: View {
                 }
             }
         }
+        .budgetWiseNavigationBar()
     }
 
     private func saveCategory() {
