@@ -5,6 +5,7 @@ struct SettingsView: View {
     @ObservedObject var viewModel: ExpenseViewModel
     @State private var inputByCategory: [TransactionCategory: String] = [:]
     @State private var showExportView = false
+    @State private var showDeleteAllTransactionsConfirmation = false
 
     var body: some View {
         List {
@@ -13,6 +14,27 @@ struct SettingsView: View {
                     limitRow(for: category)
                         .listRowBackground(Color.listCellOnMidnight)
                 }
+                VStack(alignment: .center, spacing: 12) {
+                    Button {
+                        resetAllLimits()
+                    } label: {
+                        Text("Сбросить лимиты")
+                            .foregroundColor(.red)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                    .buttonStyle(.bordered)
+
+                    Button {
+                        showDeleteAllTransactionsConfirmation = true
+                    } label: {
+                        Text("Удалить все транзакции")
+                            .foregroundColor(.red)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                    .buttonStyle(.bordered)
+                }
+                .padding(.top, 8)
+                .listRowBackground(Color.clear)
             } header: {
                 Text("Лимиты по категориям")
                     .foregroundStyle(Color.themeHeadingOnDark)
@@ -32,6 +54,7 @@ struct SettingsView: View {
                     .foregroundStyle(Color.themeHeadingOnDark)
             }
 
+            /*
             Section {
                 Button {
                     showExportView = true
@@ -44,6 +67,20 @@ struct SettingsView: View {
                 Text("Экспорт")
                     .foregroundStyle(Color.themeHeadingOnDark)
             }
+            */
+
+            Section {
+                Button {
+                    viewModel.generateRandomTransactions(count: 200)
+                } label: {
+                    Label("Сгенерировать тестовые данные", systemImage: "dice.fill")
+                }
+                .tint(Color.themeAccent)
+                .listRowBackground(Color.listCellOnMidnight)
+            } header: {
+                Text("Демо")
+                    .foregroundStyle(Color.themeHeadingOnDark)
+            }
         }
         .listStyle(.insetGrouped)
         .navigationTitle("Настройки")
@@ -53,6 +90,17 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showExportView) {
             ExportView(viewModel: viewModel)
+        }
+        .alert(
+            "Удалить все транзакции?",
+            isPresented: $showDeleteAllTransactionsConfirmation
+        ) {
+            Button("Удалить", role: .destructive) {
+                viewModel.deleteAllTransactions()
+            }
+            Button("Нет", role: .cancel) {}
+        } message: {
+            Text("Все транзакции будут безвозвратно удалены. Это действие нельзя отменить.")
         }
     }
 
@@ -117,6 +165,13 @@ struct SettingsView: View {
         guard let parsed = parsedLimit(for: category), parsed >= 0 else { return }
         viewModel.setLimit(parsed, for: category)
         inputByCategory[category] = String(format: "%.2f", parsed)
+    }
+
+    private func resetAllLimits() {
+        for category in TransactionCategory.allCases {
+            viewModel.setLimit(0, for: category)
+        }
+        syncInputWithLimits()
     }
 }
 

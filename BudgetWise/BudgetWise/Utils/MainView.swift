@@ -6,13 +6,19 @@ struct MainView: View {
     @State private var selectedTransaction: Transaction?
 
     var body: some View {
-        VStack(spacing: 16) {
-            headerSection
-            predictionSection
+        List {
+            Section {
+                budgetHeaderCard
+            }
+            .listRowBackground(Color.midnightSky)
+            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+            .listRowSeparator(.hidden)
+
             contentSection
         }
-        .padding(.top, 8)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .listStyle(.plain)
+        .listSectionSeparator(.hidden)
+        .budgetWiseListChrome()
         .background(Color.midnightSky)
         .navigationTitle("Бюджет")
         .toolbar {
@@ -33,68 +39,85 @@ struct MainView: View {
         }
     }
 
-    private var headerSection: some View {
-        VStack(spacing: 6) {
-            Text("Общая сумма")
-                .font(.subheadline)
-                .foregroundStyle(Color.themeCaptionOnDark)
+    private var budgetHeaderCard: some View {
+        VStack(spacing: 12) {
+            VStack(spacing: 6) {
+                Text("Общая сумма")
+                    .font(.subheadline)
+                    .foregroundStyle(Color.themeCaptionOnDark)
 
-            Text("\(viewModel.totalBalance, specifier: "%.2f") руб.")
-                .font(.system(size: 34, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.themeAccent)
-        }
-        .padding(.horizontal)
-    }
+                Text("\(viewModel.totalBalance, specifier: "%.2f") руб.")
+                    .font(.system(size: 34, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color.themeAccent)
+            }
+            .multilineTextAlignment(.center)
 
-    private var predictionSection: some View {
-        HStack(spacing: 0) {
-            Text("Прогноз на след. месяц: ")
-                .foregroundStyle(Color.themeHeadingOnDark)
-            Text("\(viewModel.predictedExpense(), specifier: "%.2f") руб.")
-                .foregroundStyle(Color.themeAccent)
+            HStack(spacing: 0) {
+                Text("Прогноз на след. месяц: ")
+                    .foregroundStyle(Color.themeHeadingOnDark)
+                Text("\(viewModel.predictedExpense(), specifier: "%.2f") руб.")
+                    .foregroundStyle(Color.themeAccent)
+            }
+            .font(.headline)
+            .multilineTextAlignment(.center)
         }
-        .font(.headline)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal)
+        .frame(maxWidth: .infinity, alignment: .center)
+        .padding(.vertical, 20)
+        .padding(.horizontal, 16)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
+        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(
+                    LinearGradient(
+                        colors: [.white.opacity(0.5), .clear],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ),
+                    lineWidth: 0.5
+                )
+        )
     }
     
     @ViewBuilder
     private var contentSection: some View {
         if viewModel.transactions.isEmpty {
-            VStack(spacing: 12) {
-                Text("Нет трат")
-                    .font(.title3)
-                    .foregroundStyle(Color.themeCaptionOnDark)
+            Section {
+                VStack(spacing: 12) {
+                    Text("Нет трат")
+                        .font(.title3)
+                        .foregroundStyle(Color.themeCaptionOnDark)
 
-                Button("Добавить первую") {
-                    isShowingAddTransaction = true
+                    Button("Добавить первую") {
+                        isShowingAddTransaction = true
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color.themeAccent)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(Color.themeAccent)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .listRowBackground(Color.midnightSky)
+                .listRowSeparator(.hidden)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
-            List {
-                ForEach(viewModel.transactions) { transaction in
-                    Button {
-                        selectedTransaction = transaction
+            ForEach(viewModel.transactions) { transaction in
+                Button {
+                    selectedTransaction = transaction
+                } label: {
+                    TransactionRowView(transaction: transaction)
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                .listRowSeparator(.hidden)
+                .swipeActions(edge: .trailing) {
+                    Button(role: .destructive) {
+                        viewModel.deleteTransaction(transaction)
                     } label: {
-                        TransactionRowView(transaction: transaction)
-                    }
-                    .buttonStyle(.plain)
-                    .listRowBackground(Color.listCellOnMidnight)
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) {
-                            viewModel.deleteTransaction(transaction)
-                        } label: {
-                            Label("Удалить", systemImage: "trash")
-                        }
+                        Label("Удалить", systemImage: "trash")
                     }
                 }
-                .onDelete(perform: viewModel.deleteTransactions)
             }
-            .listStyle(.plain)
-            .budgetWiseListChrome()
+            .onDelete(perform: viewModel.deleteTransactions)
         }
     }
 }

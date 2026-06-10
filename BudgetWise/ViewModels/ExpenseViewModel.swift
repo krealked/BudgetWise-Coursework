@@ -32,8 +32,9 @@ public class ExpenseViewModel: ObservableObject {
     public init() {
         loadLimits()
         loadTransactions()
-        updatePredictions()
-        updateStatistics()
+        if transactions.count < 10 {
+            generateRandomTransactions(count: 200)
+        }
     }
     
     // MARK: - Load Transactions
@@ -106,6 +107,21 @@ public class ExpenseViewModel: ObservableObject {
         offsets.forEach { index in
             guard index < transactions.count else { return }
             deleteTransaction(transactions[index])
+        }
+    }
+
+    /// Удаляет все транзакции из Core Data.
+    public func deleteAllTransactions() {
+        let fetchRequest: NSFetchRequest<Expense> = Expense.fetchRequest()
+
+        do {
+            let expenses = try viewContext.fetch(fetchRequest)
+            expenses.forEach { viewContext.delete($0) }
+            try viewContext.save()
+            loadTransactions()
+        } catch {
+            errorMessage = "Ошибка при удалении всех транзакций: \(error.localizedDescription)"
+            print("Error deleting all transactions: \(error)")
         }
     }
     
@@ -183,6 +199,38 @@ public class ExpenseViewModel: ObservableObject {
     /// Обновляет все данные
     public func refresh() {
         loadTransactions()
+    }
+
+    // MARK: - Demo / Test Data
+    /// Добавляет случайные транзакции за последний год (не удаляет существующие).
+    public func generateRandomTransactions(count: Int = 200) {
+        let calendar = Calendar.current
+        let now = Date()
+        let categories = TransactionCategory.allCases
+
+        for _ in 0..<count {
+            guard let category = categories.randomElement() else { continue }
+            let amount = Double.random(in: 100...5000)
+            let daysAgo = Int.random(in: 0...365)
+            let date = calendar.date(byAdding: .day, value: -daysAgo, to: now) ?? now
+            let note = Bool.random() ? "Тест" : ""
+
+            let transaction = Transaction(
+                amount: amount,
+                category: category,
+                date: date,
+                note: note
+            )
+            _ = transaction.toExpense(context: viewContext)
+        }
+
+        do {
+            try viewContext.save()
+            loadTransactions()
+        } catch {
+            errorMessage = "Ошибка при генерации тестовых данных: \(error.localizedDescription)"
+            print("Error generating transactions: \(error)")
+        }
     }
 
     // MARK: - Category Limits

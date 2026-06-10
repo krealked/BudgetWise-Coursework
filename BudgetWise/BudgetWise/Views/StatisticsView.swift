@@ -8,10 +8,6 @@ struct StatisticsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                Text("Статистика")
-                    .font(.largeTitle.bold())
-                    .foregroundStyle(Color.themeHeadingOnDark)
-                    .padding(.horizontal)
 
                 Picker("Период", selection: $selectedPeriod) {
                     ForEach(StatisticsPeriod.allCases) { period in

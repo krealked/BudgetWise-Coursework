@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 struct TransactionRowView: View {
     let transaction: Transaction
@@ -29,7 +32,20 @@ struct TransactionRowView: View {
             .fontWeight(.semibold)
             .foregroundStyle(Color.themeAccent)
         }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(rowBackgroundColor)
+        .cornerRadius(12)
         .padding(.vertical, 4)
+    }
+
+    private var rowBackgroundColor: Color {
+        #if canImport(UIKit)
+        Color(UIColor.secondarySystemBackground)
+        #else
+        Color.themeSurfaceElevated
+        #endif
     }
 
     private static let dateFormatter: DateFormatter = {
